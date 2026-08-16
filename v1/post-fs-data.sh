@@ -9,10 +9,15 @@ FEATURE_DIR="/product/etc/device_features"
 TARGET_DIR="$MODDIR/system/product/etc/device_features"
 # 先在独立暂存目录完成全部修改，避免发布半成品。
 STAGE_DIR="$MODDIR/.device_features.new"
+# 模块根目录下的本次启动日志文件；仅运行时生成，不预置在安装包中。
+LOG_FILE="$MODDIR/boot.log"
 
-# 统一输出带模块名称的启动日志。
+# 每次启动先清空上次日志，文件无法创建时仍继续执行模块功能。
+: > "$LOG_FILE" 2>/dev/null
+
+# 统一把带模块名称的日志追加到模块自己的启动日志文件。
 log() {
-    echo "[HyperOS3EnableAOD] $*"
+    echo "[HyperOS3EnableAOD] $*" >> "$LOG_FILE"
 }
 
 # 发生错误时只清理模块自己的暂存目录，然后以失败状态结束。
@@ -68,9 +73,16 @@ log "prepared $xml_count XML file(s)"
 # 非 KernelSU 环境到此结束，交给 Magisk 的自动挂载处理模块 system 目录。
 [ "$KSU" = "true" ] || exit 0
 
-# KernelSU 环境把完整模块副本一次性 bind 到系统原目录。
-mount -o bind "$TARGET_DIR" "$FEATURE_DIR" || fail "bind mount failed"
-# 记录 KernelSU 的手动挂载成功。
+# KernelSU 先尝试只读 OverlayFS；完整模块副本是唯一底层，不再把挂载目标作为下层。
+if mount -t overlay -o "lowerdir=$TARGET_DIR" overlay "$FEATURE_DIR" 2>> "$LOG_FILE"; then
+    # OverlayFS 成功时记录方式并结束，不再叠加 bind 挂载。
+    log "mount method: overlayfs"
+    exit 0
+fi
+
+# OverlayFS 不可用或参数不兼容时，回退为一次完整目录 bind 挂载。
+mount -o bind "$TARGET_DIR" "$FEATURE_DIR" 2>> "$LOG_FILE" || fail "bind mount failed"
+# 记录 bind 回退成功。
 log "mount method: bind"
 # 正常结束启动脚本。
 exit 0
