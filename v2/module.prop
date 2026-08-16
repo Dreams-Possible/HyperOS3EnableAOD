@@ -1,7 +1,0 @@
-id=HyperOS3EnableAOD
-name=HyperOS3启用全屏AOD（v2框架自动挂载）
-version=2.0-framework
-versionCode=2026081602
-author=Avrix
-description=验证版：Magisk Magic Mount或KernelSU Hybrid Mount自动挂载；启用全屏AOD与LTPO 1Hz
-
