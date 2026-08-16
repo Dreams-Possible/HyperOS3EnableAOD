@@ -1,0 +1,6 @@
+id=HyperOSAllInOne
+name=HyperOS2多合一模块
+version=v2.0.0.21BetaV2.5
+versionCode=4
+author=酷安@浮尘染溪哦
+description=启用状态栏渐进模糊效果，强制开始AI景深视频壁纸，合并可变刷新率，最低亮度1hz刷新率，启用全屏Aod息屏显示，强制解锁音乐触感，UI开关硬件不支持？启用8gen2核心分配，开启dm设备映射器，恢复HDR支持

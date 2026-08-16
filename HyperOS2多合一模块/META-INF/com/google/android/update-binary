@@ -1,0 +1,51 @@
+#!/sbin/sh
+#################
+# Initialization
+#################
+
+umask 022
+
+# echo before loading util_functions
+ui_print() { echo "$1"; }
+
+require_new_magisk() {
+  ui_print "*******************************"
+  ui_print " Please install Magisk v20.4+! "
+  ui_print "*******************************"
+  exit 1
+}
+
+#########################
+# Load util_functions.sh
+#########################
+
+OUTFD=$2
+ZIPFILE=$3
+
+mount /data 2>/dev/null
+
+[ -f /data/adb/magisk/util_functions.sh ] || require_new_magisk
+. /data/adb/magisk/util_functions.sh
+[ $MAGISK_VER_CODE -lt 20400 ] && require_new_magisk
+ui_print "*********************************************************"
+  SKIPUNZIP=1
+echo "--------------------------"
+echo "请于20秒内按下任意音量键以确定安装"
+echo "--------------------------"
+overtime=0
+while [ ${overtime} -lt 20 ]; do
+    keystate=$(timeout 1 getevent -qlc 1 | grep -i "KEY_VOLUME" | grep -iw "DOWN")
+    let overtime++
+    if [ ! -z "$keystate" ]; then
+        break
+    fi
+done
+
+if [ -z "$keystate" ]; then
+    abort "未检测到音量键被触发，安装失败"
+fi
+  ui_print "          刷入完成，重启生效"
+
+  ui_print "*********************************************************"
+install_module
+exit 0

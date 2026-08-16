@@ -1,0 +1,5 @@
+#LTPO降频策略
+ro.vendor.display.primary_idle_refresh_rate=60,1:10
+#AOD模式下LTPO刷新率
+ro.vendor.mi_sf.aod_mode_ddic_refresh_rate=1
+
