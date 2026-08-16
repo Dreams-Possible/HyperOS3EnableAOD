@@ -48,17 +48,16 @@ for xml_file in "$STAGE_DIR"/*.xml; do
     # 找到一个 XML 后计数。
     xml_count=$((xml_count + 1))
 
-    # 已有该开关时，只把其标准 true/false 值统一改为 true。
-    if grep -q 'support_aod_fullscreen' "$xml_file"; then
-        sed -i 's|^[[:space:]]*<bool[[:space:]]\\+name="support_aod_fullscreen">\\(true\\|false\\)</bool>[[:space:]]*$|    <bool name="support_aod_fullscreen">true</bool>|' "$xml_file" || fail "cannot update AOD flag"
-    # 原文件没有该开关时，在 features 的闭合标签前新增一行。
+    # 已有标准 true/false 开关时，只把它统一改为 true；注释中的同名文字不算开关。
+    if grep -Eq '^[[:space:]]*<bool[[:space:]]+name="support_aod_fullscreen">(true|false)</bool>[[:space:]]*$' "$xml_file"; then
+        sed -E -i 's#^[[:space:]]*<bool[[:space:]]+name="support_aod_fullscreen">(true|false)</bool>[[:space:]]*$#    <bool name="support_aod_fullscreen">true</bool>#' "$xml_file" || fail "cannot update AOD flag"
+    # 没有标准开关时，在 features 的闭合标签前新增一行。
     else
-        sed -i '/^[[:space:]]*<\\/features>[[:space:]]*$/i\\
-    <bool name="support_aod_fullscreen">true</bool>' "$xml_file" || fail "cannot add AOD flag"
+        sed -i '/^[[:space:]]*<\/features>[[:space:]]*$/i\    <bool name="support_aod_fullscreen">true</bool>' "$xml_file" || fail "cannot add AOD flag"
     fi
 
     # 修改后确认目标开关确实以 true 的形式存在。
-    grep -q '^[[:space:]]*<bool[[:space:]]\+name="support_aod_fullscreen">true</bool>[[:space:]]*$' "$xml_file" || fail "AOD flag verification failed"
+    grep -Eq '^[[:space:]]*<bool[[:space:]]+name="support_aod_fullscreen">true</bool>[[:space:]]*$' "$xml_file" || fail "AOD flag verification failed"
 done
 
 # 没有可处理的 XML 时停止，不发布空目录。
