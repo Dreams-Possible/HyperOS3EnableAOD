@@ -1,0 +1,2 @@
+# HyperOS3EnableAOD
+为HyperOS3启用基础AOD功能的支持
