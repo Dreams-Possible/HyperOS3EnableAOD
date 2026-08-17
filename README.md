@@ -2,6 +2,8 @@
 
 一个面向 HyperOS 3 的 Root 模块：尝试启用全屏 AOD，并让支持 LTPO 的屏幕可在 AOD 场景降至 1Hz 刷新率。
 
+> 本模块并非原创功能实现，而是基于社区已有方案进行整理、打包与发布，方便安装和测试。
+
 ## 工作原理
 
 模块不会持久修改 `/product/etc/device_features` 中的原始设备配置。开机时，`post-fs-data.sh` 会：
