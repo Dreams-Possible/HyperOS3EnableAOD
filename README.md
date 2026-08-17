@@ -35,4 +35,3 @@
 ## 安装
 
 从 Releases 下载 `HyperOS3EnableAOD.zip`，使用 Magisk 或 KernelSU 的模块安装界面安装，然后重启。
-
