@@ -11,16 +11,16 @@
 1. 将当前系统的 `device_features` 目录完整复制到模块自己的临时副本；
 2. 在每个 XML 中写入或将 `support_aod_fullscreen` 维护为 `true`；
 3. 完成后将副本发布到模块的 `system/product/etc/device_features` 路径；
-4. 在 Magisk 中交由 Magic Mount 自动挂载；在 KernelSU 中先尝试 OverlayFS，失败时回退为 bind mount。
+4. 在 Magisk 中交由 Magic Mount 自动挂载；在 KernelSU 中先尝试只读 OverlayFS（先将模块副本复制到 `/dev` 的 tmpfs，再与系统原目录组成两个 lowerdir），失败时回退为 bind mount。
 
 因此，系统原始 XML 不会被写入；禁用或卸载模块并重启后，系统会恢复原状。
 
 ## 支持范围与测试状态
 
 - 理论上可为支持该配置的机型动态注入 AOD 属性。
-- 同时面向 KernelSU 和 Magisk：KernelSU 优先尝试 OverlayFS，失败时回退到 bind mount；Magisk 使用自身的 Magic Mount。
-- 目前仅在 **小米 13 Ultra 的 KernelSU + bind mount** 路径上完成实机测试。
-- OverlayFS、Magisk 与其他机型尚待更多实机验证；如有问题，请附上模块 `boot.log`、挂载状态和机型/系统版本。
+- 同时面向 KernelSU 和 Magisk：KernelSU 先尝试只读 OverlayFS，失败时回退为 bind mount；Magisk 使用自身的 Magic Mount。
+- 已在 **小米 13 Ultra 的 KernelSU** 环境验证只读 OverlayFS 挂载及 XML 开关注入，bind mount 回退也已验证。
+- 实际 AOD 显示效果、禁用/卸载后的恢复、Magisk 与其他机型仍需进一步验证；如有问题，请附上模块 `boot.log`、挂载状态和机型/系统版本。
 
 ## 警告
 
@@ -34,9 +34,13 @@
 
 强烈推荐搭配 [silverpoetry/hyperos-full-aod-bridge](https://github.com/silverpoetry/hyperos-full-aod-bridge) 使用，以获得更完整的智能唤醒体验。这个项目不但提供了有效的解决方案，也完整记录了排查、验证与调试过程，极具学习价值。感谢原作者的工作。
 
+## OverlayFS 底层目录兼容性
+
+部分 Android `/data` 文件系统的 dentry 操作不被 OverlayFS 接受，即使双 lowerdir 参数正确也会返回 `EINVAL`。KernelSU 路径因此将修改后的目录复制到现有 `/dev` tmpfs 的独立临时目录，避免直接把 `/data` 副本作为 lowerdir，不额外挂载 tmpfs。成功后保留这份内存副本供 OverlayFS 使用，重启自动释放；失败时删除本次临时目录并回退 bind。
+
 ## 日志与排障
 
-每次启动时，模块会在自身目录生成 `boot.log`，记录准备、挂载及失败信息。KernelSU 下若 OverlayFS 不可用，日志中会显示其错误，并继续尝试 bind mount。
+每次启动时，模块会在自身目录生成 `boot.log`，记录准备、挂载及失败信息。KernelSU 下 OverlayFS 成功时记录 `mount method: overlayfs`；失败时记录错误并回退，bind 成功时记录 `mount method: bind`。
 
 ## 安装
 
